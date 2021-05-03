@@ -1,3 +1,4 @@
+import argparse
 import os
 import requests
 import urllib3
@@ -59,19 +60,40 @@ def parse_book_page(response):
     image_path = soup.find(class_='bookimage').find('img')['src']
     image_url = urljoin(response.url, image_path)
 
-    book_info = {'title': title,
+    book_info = {
+        'title': title,
         'author': author,
         'genres': genres,
         'comments': comments,
         'image_url': image_url,
-    }
+        }
     return book_info
 
 
+def create_parser():
+    parser = argparse.ArgumentParser(
+        description='Скрипт, позволяющий скачивать книги из библиотеки tululu.org',
+        )
+    parser.add_argument(
+        'start_id',
+        help='Номер первой книги из списка для скачивания',
+        type=int,
+        )
+    parser.add_argument(
+        'end_id',
+        help='Номер последней книги в списке для скачивания',
+        type=int,
+        )
+    return parser
+
+
 if __name__ == '__main__':
-    books_count = 10
     download_text_url = 'https://tululu.org/txt.php'
-    for book_id in range(1, books_count + 1):
+
+    parser = create_parser()
+    book_ids = parser.parse_args()
+
+    for book_id in range(book_ids.start_id, book_ids.end_id + 1):
         payload = {'id': book_id}
         book_url = f'https://tululu.org/b{book_id}/'
         try:
