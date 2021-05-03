@@ -31,7 +31,27 @@ def download_image(url, folder='images'):
     return filepath
 
 
-# def parse_book_page(html_content):
+def parse_book_page(response):
+    soup = BeautifulSoup(response.text, 'lxml')
+
+    title, author = [element.strip() for element in soup.find('h1').text.split('::')]
+
+    genres = [genre.text for genre in soup.find('span', class_='d_book').find_all('a')]
+
+    comments = [comment.find(class_='black').text for comment in soup.find_all(class_='texts')]
+
+    image_path = soup.find(class_='bookimage').find('img')['src']
+    image_url = urljoin(book_url, image_path)
+
+    book_info = {'title': title,
+        'author': author,
+        'genres': genres,
+        'comments': comments,
+        'image_url': image_url,
+    }
+
+    return book_info
+
 
 
 download_url = 'https://tululu.org/txt.php'
@@ -50,20 +70,12 @@ for book_id in range(1, books_count + 1):
     except HTTPError:
         pass
     else:
-        soup = BeautifulSoup(response.text, 'lxml')
-        title, author = [element.strip() for element in soup.find('h1').text.split('::')]
+        book_info = parse_book_page(response)
+        print(book_info)
+        
+        
 
-        genres = [genre.text for genre in soup.find('span', class_='d_book').find_all('a')]
-        print(title)
-        print(genres)
-
-        # comments = soup.find_all(class_='texts')
-        # for comment in comments:
-        #     print(comment.find(class_='black').text)
-
-
-        # image_path = soup.find(class_='bookimage').find('img')['src']
-        # image_url = urljoin(book_url, image_path)
+        
         # response = requests.get(image_url, verify=False)
         # response.raise_for_status()
 
