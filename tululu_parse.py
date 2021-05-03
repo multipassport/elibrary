@@ -106,3 +106,7 @@ if __name__ == '__main__':
             book_info = parse_book_page(response)
             download_image(book_info['image_url'])
             download_txt(download_text_url, book_info['title'], book_id)
+
+            print('Автор:', book_info['author'])
+            print('Навзвание:', book_info['title'])
+            print('Жанр(ы):', book_info['genres'], '\n')
