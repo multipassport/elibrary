@@ -31,9 +31,10 @@ def download_image(url, folder='images'):
     return filepath
 
 
+# def parse_book_page(html_content):
 
 
-download_url = "https://tululu.org/txt.php"
+download_url = 'https://tululu.org/txt.php'
 
 
 books_count = 10
@@ -52,9 +53,15 @@ for book_id in range(1, books_count + 1):
         soup = BeautifulSoup(response.text, 'lxml')
         title, author = [element.strip() for element in soup.find('h1').text.split('::')]
 
-        comments = soup.find_all(class_='texts')
-        for comment in comments:
-            print(comment.find(class_='black').text)
+        genres = [genre.text for genre in soup.find('span', class_='d_book').find_all('a')]
+        print(title)
+        print(genres)
+
+        # comments = soup.find_all(class_='texts')
+        # for comment in comments:
+        #     print(comment.find(class_='black').text)
+
+
         # image_path = soup.find(class_='bookimage').find('img')['src']
         # image_url = urljoin(book_url, image_path)
         # response = requests.get(image_url, verify=False)
