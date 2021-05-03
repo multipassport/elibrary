@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 from pathvalidate import sanitize_filename
 from requests.exceptions import HTTPError
-from urllib.parse import urljoin, urlparse, urlsplit
+from urllib.parse import urljoin, urlparse
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -49,20 +49,19 @@ for book_id in range(1, books_count + 1):
     except HTTPError:
         pass
     else:
-        print(response.history)
         soup = BeautifulSoup(response.text, 'lxml')
         title, author = [element.strip() for element in soup.find('h1').text.split('::')]
 
-        image_path = soup.find(class_='bookimage').find('img')['src']
-        image_url = urljoin(book_url, image_path)
-        print(image_url)
-        print(download_image(image_url))
+        comments = soup.find_all(class_='texts')
+        for comment in comments:
+            print(comment.find(class_='black').text)
+        # image_path = soup.find(class_='bookimage').find('img')['src']
+        # image_url = urljoin(book_url, image_path)
+        # response = requests.get(image_url, verify=False)
+        # response.raise_for_status()
 
-        response = requests.get(image_url, verify=False)
-        response.raise_for_status()
-
-        with open(download_image(image_url), 'wb') as file:
-            file.write(response.content)
+        # with open(download_image(image_url), 'wb') as file:
+        #     file.write(response.content)
 
         # file_root = download_txt(download_url, title, book_id)
         # response = requests.get(download_url, params=payload, verify=False, allow_redirects=False)
