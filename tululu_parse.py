@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import requests
 import urllib3
@@ -15,7 +16,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 def check_for_redirect(response):
     if response.history:
         raise HTTPError
-    return None
 
 
 def download_txt(url, filename, book_id, folder='books'):
@@ -23,6 +23,7 @@ def download_txt(url, filename, book_id, folder='books'):
     clear_filename = f'{book_id}.{sanitize_filename(filename)}'
     filepath = f'{os.path.join(folder, clear_filename)}.txt'
 
+    payload = {'id': book_id}
     response = requests.get(url, params=payload,
         verify=False, allow_redirects=False)
     response.raise_for_status()
@@ -32,9 +33,9 @@ def download_txt(url, filename, book_id, folder='books'):
     return filepath
 
 
-def download_image(url, folder='images'):
+def download_image(url, book_id, folder='images'):
     Path(f'./{folder}').mkdir(exist_ok=True)
-    filename = os.path.split(urlparse(url).path)[-1]
+    filename = f'{book_id}{os.path.splitext(urlparse(url).path)[-1]}'
     filepath = os.path.join(folder, filename)
 
     response = requests.get(url, verify=False)
@@ -88,25 +89,28 @@ def create_parser():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(filename="tululu_parse.log", filemode='w')
+
     download_text_url = 'https://tululu.org/txt.php'
 
     parser = create_parser()
     book_ids = parser.parse_args()
 
     for book_id in range(book_ids.start_id, book_ids.end_id + 1):
-        payload = {'id': book_id}
         book_url = f'https://tululu.org/b{book_id}/'
         try:
             response = requests.get(book_url, verify=False)
             response.raise_for_status()
             check_for_redirect(response)
         except HTTPError:
-            pass
+            error_text = f'Book {book_id} is not found'
+            print(error_text, '\n')
+            logging.error(error_text)
         else:
             book_info = parse_book_page(response)
-            download_image(book_info['image_url'])
+            download_image(book_info['image_url'], book_id)
             download_txt(download_text_url, book_info['title'], book_id)
 
             print('Автор:', book_info['author'])
-            print('Навзвание:', book_info['title'])
+            print('Название:', book_info['title'])
             print('Жанр(ы):', book_info['genres'], '\n')
