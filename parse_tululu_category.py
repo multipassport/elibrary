@@ -1,6 +1,7 @@
 import argparse
 import json
 import logging
+import os
 import requests
 import urllib3
 
@@ -33,7 +34,8 @@ def create_parser():
         help='Номер первой страницы из коллекции,'
         ' которую Вы собираетесь скачать',
         type=int,
-        default=1
+        default=1,
+        metavar='ПЕРВАЯ СТРАНИЦА',
         )
     parser.add_argument(
         '-l',
@@ -42,6 +44,33 @@ def create_parser():
         ' которую Вы собираетесь скачать',
         type=int,
         default=LAST_PAGE,
+        metavar='ПОСЛЕДНЯЯ СТРАНИЦА',
+        )
+    parser.add_argument(
+        '--dest_folder',
+        help='Выбор папок для скачивания книг, обложек и json-файла',
+        nargs='+',
+        default=['books', 'images'],
+        metavar=('КНИГИ, КАРТИНКИ'),
+        )
+    parser.add_argument(
+        '--json_path',
+        help='Выбор папок для скачивания книг, обложек и json-файла',
+        nargs='+',
+        default='',
+        metavar='ПУТЬ К ФАЙЛУ JSON',
+        )
+    parser.add_argument(
+        '--skip_imgs',
+        help='Если указан, обложки не будут скачиваться',
+        default=True,
+        action='store_false',
+        )
+    parser.add_argument(
+        '--skip_txt',
+        help='Если указан, книги не будут скачиваться',
+        default=True,
+        action='store_false',
         )
     return parser
 
@@ -62,13 +91,16 @@ if __name__ == '__main__':
     LAST_PAGE = fetch_last_page_of_collection_number(scifi_collection_url)
 
     parser = create_parser()
-    collection_pages = parser.parse_args()
+    script_arguments = parser.parse_args()
 
+    Path(f'./{script_arguments.json_path}').mkdir(exist_ok=True)
+    json_filepath = os.path.join(script_arguments.json_path, 'books_data.json')
+    
     book_page_links = []
     downloaded_books_data = []
 
     for page_id in range(
-            collection_pages.start_page, collection_pages.last_page + 1):
+            script_arguments.start_page, script_arguments.last_page + 1):
         page_url = urljoin(scifi_collection_url, str(page_id))
         response = requests.get(page_url, verify=False)
         response.raise_for_status()
@@ -98,11 +130,15 @@ if __name__ == '__main__':
                 print(error_text, '\n')
                 logging.error(error_text)
             else:
-                download_txt(download_text_url, book_info['title'], book_id)
-                download_image(book_info['image_url'], book_id)
+                if script_arguments.skip_txt:
+                    download_txt(download_text_url, book_info['title'], book_id,
+                        folder=script_arguments.dest_folder[0])
+                if script_arguments.skip_imgs:
+                    download_image(book_info['image_url'], book_id,
+                        folder=script_arguments.dest_folder[1])
                 downloaded_books_data.append(book_info)
                 print(f'Скачивается {book_info["title"]}')
                 print(link, '\n')
 
-    with open('books_data.json', 'w', encoding='utf-8') as file:
+    with open(json_filepath, 'w', encoding='utf-8') as file:
         json.dump(downloaded_books_data, file, indent=4, ensure_ascii=False)

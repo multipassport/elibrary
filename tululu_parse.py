@@ -16,7 +16,7 @@ def check_for_redirect(response):
         raise HTTPError
 
 
-def download_txt(url, filename, book_id, folder='books'):
+def download_txt(url, filename, book_id, folder):
     Path(f'./{folder}').mkdir(exist_ok=True)
     clear_filename = f'{book_id}.{sanitize_filename(filename)}'
     filepath = f'{os.path.join(folder, clear_filename)}.txt'
@@ -30,7 +30,7 @@ def download_txt(url, filename, book_id, folder='books'):
         file.write(response.text)
     return filepath
 
-def download_image(url, book_id, folder='images'):
+def download_image(url, book_id, folder):
     Path(f'./{folder}').mkdir(exist_ok=True)
     filename = f'{book_id}{os.path.splitext(urlparse(url).path)[-1]}'
     filepath = os.path.join(folder, filename)
@@ -80,6 +80,13 @@ def create_parser():
         help='Номер последней книги в списке для скачивания',
         type=int,
         )
+    parser.add_argument(
+        '--dest_folder',
+        help='Выбор папок для скачивания книг, обложек и json-файла',
+        nargs='+',
+        default=['books', 'images'],
+        metavar=('КНИГИ, КАРТИНКИ'),
+        )
     return parser
 
 
@@ -91,9 +98,9 @@ if __name__ == '__main__':
     download_text_url = 'https://tululu.org/txt.php'
 
     parser = create_parser()
-    book_ids = parser.parse_args()
+    script_arguments = parser.parse_args()
 
-    for book_id in range(book_ids.start_id, book_ids.end_id + 1):
+    for book_id in range(script_arguments.start_id, script_arguments.end_id + 1):
         book_url = f'https://tululu.org/b{book_id}/'
         try:
             response = requests.get(book_url, verify=False)
@@ -105,8 +112,10 @@ if __name__ == '__main__':
             logging.error(error_text)
         else:
             book_info = parse_book_page(response)
-            download_image(book_info['image_url'], book_id)
-            download_txt(download_text_url, book_info['title'], book_id)
+            download_image(book_info['image_url'], book_id,
+                script_arguments.dest_folder[1])
+            download_txt(download_text_url, book_info['title'], book_id,
+                script_arguments.dest_folder[0])
 
             print('Автор:', book_info['author'])
             print('Название:', book_info['title'])
