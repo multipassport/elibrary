@@ -47,15 +47,13 @@ def parse_book_page(response):
     soup = BeautifulSoup(response.text, 'lxml')
 
     title, author = [element.strip()
-        for element in soup.find('h1').text.split('::')]
+        for element in soup.select_one('h1').text.split('::')]
 
-    genres = [genre.text
-        for genre in soup.find('span', class_='d_book').find_all('a')]
+    genres = [genre.text for genre in soup.select('span.d_book a')]
 
-    comments = [comment.find(class_='black').text
-        for comment in soup.find_all(class_='texts')]
+    comments = [comment.text for comment in soup.select('.texts .black')]
 
-    image_path = soup.find(class_='bookimage').find('img')['src']
+    image_path = soup.select_one('.bookimage img')['src']
     image_url = urljoin(response.url, image_path)
 
     book_info = {

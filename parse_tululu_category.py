@@ -14,13 +14,11 @@ from urllib.parse import urljoin, urlsplit, urlparse
 def get_bookpages_links(response):
     soup = BeautifulSoup(response.text, 'lxml')
     tululu_url = 'https://tululu.org/'
-    book_page_links = []
-
+    
     for book_cart in soup.select('.d_book'):
         book_path = book_cart.select_one('a')['href']
         book_page_link = urljoin(tululu_url, book_path)
-        book_page_links.append(book_page_link)
-    return book_page_links
+        yield book_page_link
 
 
 if __name__ == '__main__':
