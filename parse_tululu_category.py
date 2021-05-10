@@ -13,26 +13,32 @@ from urllib.parse import urljoin, urlsplit, urlparse
 
 def get_bookpages_links(response):
     soup = BeautifulSoup(response.text, 'lxml')
-    for book_cart in soup.find_all(class_='d_book'):
-        abc = book_cart.find('a')['href']
-        book_download_links = urljoin(scifi_collection_url, abc)
-        yield book_download_links
+    tululu_url = 'https://tululu.org/'
+    book_page_links = []
+
+    for book_cart in soup.select('.d_book'):
+        book_path = book_cart.select_one('a')['href']
+        book_page_link = urljoin(tululu_url, book_path)
+        book_page_links.append(book_page_link)
+    return book_page_links
 
 
 if __name__ == '__main__':
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    logging.basicConfig(filename="parse_tululu_category.log", filemode='w')
+    logging.basicConfig(filename='parse_tululu_category.log', filemode='w')
 
     scifi_collection_url = 'https://tululu.org/l55/'
     download_text_url = 'https://tululu.org/txt.php'
     book_page_links = []
     downloaded_books_data = []
     pages_to_parse = 4
+
     for page_id in range(1, pages_to_parse + 1):
         page_url = urljoin(scifi_collection_url, str(page_id))
         response = requests.get(page_url, verify=False)
         response.raise_for_status()
         book_page_links.extend(get_bookpages_links(response))
+
     for link in book_page_links:
         book_id = urlsplit(link).path.strip('/b')
         try:
@@ -62,5 +68,6 @@ if __name__ == '__main__':
                 downloaded_books_data.append(book_info)
                 print(f'Скачивается {book_info["title"]}')
                 print(link, '\n')
+
     with open('books_data.json', 'w', encoding='utf-8') as file:
         json.dump(downloaded_books_data, file, indent=4, ensure_ascii=False)
