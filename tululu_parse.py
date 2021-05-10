@@ -10,8 +10,6 @@ from pathvalidate import sanitize_filename
 from requests.exceptions import HTTPError
 from urllib.parse import urljoin, urlparse
 
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
 
 def check_for_redirect(response):
     if response.history:
@@ -31,7 +29,6 @@ def download_txt(url, filename, book_id, folder='books'):
     with open(filepath, 'w') as file:
         file.write(response.text)
     return filepath
-
 
 def download_image(url, book_id, folder='images'):
     Path(f'./{folder}').mkdir(exist_ok=True)
@@ -89,6 +86,8 @@ def create_parser():
 
 
 if __name__ == '__main__':
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
     logging.basicConfig(filename="tululu_parse.log", filemode='w')
 
     download_text_url = 'https://tululu.org/txt.php'
