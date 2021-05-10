@@ -1,3 +1,4 @@
+import argparse
 import json
 import logging
 import requests
@@ -21,17 +22,53 @@ def get_bookpages_links(response):
         yield book_page_link
 
 
+def create_parser():
+    parser = argparse.ArgumentParser(
+        description='Скрипт, позволяющий скачивать книги жанра'
+        ' Научная фантастика из библиотеки tululu.org',
+        )
+    parser.add_argument(
+        '-s',
+        '--start_page',
+        help='Номер первой страницы из коллекции,'
+        ' которую Вы собираетесь скачать',
+        type=int,
+        default=1
+        )
+    parser.add_argument(
+        '-l',
+        '--last_page',
+        help='Номер последней страницы из коллекции,'
+        ' которую Вы собираетесь скачать',
+        type=int,
+        default=LAST_PAGE,
+        )
+    return parser
+
+
+def fetch_last_page_of_collection_number(url):
+    response = requests.get(scifi_collection_url, verify=False)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, 'lxml')
+    return soup.select('.npage')[-1].text
+
+
 if __name__ == '__main__':
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     logging.basicConfig(filename='parse_tululu_category.log', filemode='w')
 
     scifi_collection_url = 'https://tululu.org/l55/'
     download_text_url = 'https://tululu.org/txt.php'
+    LAST_PAGE = fetch_last_page_of_collection_number(scifi_collection_url)
+
+    parser = create_parser()
+    collection_pages = parser.parse_args()
+
     book_page_links = []
     downloaded_books_data = []
-    pages_to_parse = 4
 
-    for page_id in range(1, pages_to_parse + 1):
+    for page_id in range(
+            collection_pages.start_page, collection_pages.last_page + 1):
         page_url = urljoin(scifi_collection_url, str(page_id))
         response = requests.get(page_url, verify=False)
         response.raise_for_status()
