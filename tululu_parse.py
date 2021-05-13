@@ -93,7 +93,7 @@ def create_parser():
 if __name__ == '__main__':
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-    logging.basicConfig(filename="tululu_parse.log", filemode='w')
+    logging.basicConfig(filename='tululu_parse.log', filemode='w')
 
     download_text_url = 'https://tululu.org/txt.php'
 
