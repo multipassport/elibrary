@@ -88,6 +88,13 @@ def fetch_last_page_of_collection_number(url):
     return soup.select('.npage')[-1].text
 
 
+# def check_for_redirect(url, **payload):
+#     response = requests.get(download_text_url, verify=False, params=payload)
+#                 response.raise_for_status()
+
+
+
+
 if __name__ == '__main__':
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     logging.basicConfig(filename='parse_tululu_category.log', filemode='w')
@@ -112,33 +119,26 @@ if __name__ == '__main__':
             response = requests.get(link, verify=False)
             response.raise_for_status()
             check_for_redirect(response)
+            book_info = parse_book_page(response)
+            
+            payload = {'id': book_id}
+            response = requests.get(
+                download_text_url, verify=False, params=payload)          
+            check_for_redirect(response)
         except HTTPError:
             error_text = f'Book {book_id} is not found'
             print(error_text, '\n')
             logging.error(error_text)
         else:
-            book_info = parse_book_page(response)
-            try:
-                payload = {'id': book_id}
-                response = requests.get(
-                    download_text_url, verify=False, params=payload
-                    )
-                response.raise_for_status()
-                check_for_redirect(response)
-            except HTTPError:
-                error_text = f'Book {book_id} is not found'
-                print(error_text, '\n')
-                logging.error(error_text)
-            else:
-                if script_arguments.skip_txt:
-                    download_txt(download_text_url, book_info['title'], book_id,
-                        folder=script_arguments.dest_folder[0])
-                if script_arguments.skip_imgs:
-                    download_image(book_info['image_url'], book_id,
-                        folder=script_arguments.dest_folder[1])
-                downloaded_books_data.append(book_info)
-                print(f'Скачивается {book_info["title"]}')
-                print(link, '\n')
+            if script_arguments.skip_txt:
+                download_txt(download_text_url, book_info['title'], book_id,
+                    folder=script_arguments.dest_folder[0])
+            if script_arguments.skip_imgs:
+                download_image(book_info['image_url'], book_id,
+                    folder=script_arguments.dest_folder[1])
+            downloaded_books_data.append(book_info)
+            print(f'Скачивается {book_info["title"]}')
+            print(link, '\n')
 
     with open(json_filepath, 'w', encoding='utf-8') as file:
         json.dump(downloaded_books_data, file, indent=4, ensure_ascii=False)
