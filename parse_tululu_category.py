@@ -53,11 +53,16 @@ def create_parser():
         metavar='ПОСЛЕДНЯЯ СТРАНИЦА',
         )
     parser.add_argument(
-        '--dest_folder',
+        '--book_folder',
         help='Выбор папок для скачивания книг, обложек и json-файла',
-        nargs='+',
-        default=['books', 'images'],
-        metavar=('КНИГИ, КАРТИНКИ'),
+        default='books',
+        metavar='КНИГИ',
+        )
+    parser.add_argument(
+        '--image_folder',
+        help='Выбор папок для скачивания книг, обложек и json-файла',
+        default='images',
+        metavar='КАРТИНКИ',
         )
     parser.add_argument(
         '--json_path',
@@ -132,10 +137,10 @@ if __name__ == '__main__':
         else:
             if script_arguments.skip_txt:
                 download_txt(download_text_url, book_info['title'], book_id,
-                    folder=script_arguments.dest_folder[0])
+                    folder=script_arguments.book_folder)
             if script_arguments.skip_imgs:
                 download_image(book_info['image_url'], book_id,
-                    folder=script_arguments.dest_folder[1])
+                    folder=script_arguments.image_folder)
             downloaded_books_data.append(book_info)
             print(f'Скачивается {book_info["title"]}')
             print(link, '\n')
