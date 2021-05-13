@@ -13,14 +13,20 @@ from tululu_parse import (parse_book_page, download_image,
 from urllib.parse import urljoin, urlsplit, urlparse
 
 
-def get_bookpages_links(response):
-    soup = BeautifulSoup(response.text, 'lxml')
+def get_bookpages_links(url):
     tululu_url = 'https://tululu.org/'
-    
-    for book_cart in soup.select('.d_book'):
-        book_path = book_cart.select_one('a')['href']
-        book_page_link = urljoin(tululu_url, book_path)
-        yield book_page_link
+    book_page_links = []
+
+    for page_id in range(script_arguments.start_page,
+            script_arguments.last_page + 1):
+        page_url = urljoin(scifi_collection_url, str(page_id))
+        response = requests.get(page_url, verify=False)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'lxml')
+        for book_cart in soup.select('.d_book'):
+            book_path = book_cart.select_one('a')['href']
+            book_page_link = urljoin(tululu_url, book_path)
+            yield book_page_link
 
 
 def create_parser():
@@ -95,16 +101,10 @@ if __name__ == '__main__':
 
     Path(f'./{script_arguments.json_path}').mkdir(exist_ok=True)
     json_filepath = os.path.join(script_arguments.json_path, 'books_data.json')
-    
-    book_page_links = []
+
     downloaded_books_data = []
 
-    for page_id in range(
-            script_arguments.start_page, script_arguments.last_page + 1):
-        page_url = urljoin(scifi_collection_url, str(page_id))
-        response = requests.get(page_url, verify=False)
-        response.raise_for_status()
-        book_page_links.extend(get_bookpages_links(response))
+    book_page_links = get_bookpages_links(scifi_collection_url)
 
     for link in book_page_links:
         book_id = urlsplit(link).path.strip('/b')
