@@ -88,11 +88,13 @@ def fetch_last_page_of_collection_number(url):
     return soup.select('.npage')[-1].text
 
 
-# def check_for_redirect(url, **payload):
-#     response = requests.get(download_text_url, verify=False, params=payload)
-#                 response.raise_for_status()
+def download_json(folder, data):
+    json_filename = 'books_data.json'
+    Path(f'./{folder}').mkdir(exist_ok=True)
+    json_filepath = os.path.join(folder, json_filename)
 
-
+    with open(json_filepath, 'w', encoding='utf-8') as file:
+        json.dump(downloaded_books_data, file, indent=4, ensure_ascii=False)
 
 
 if __name__ == '__main__':
@@ -105,9 +107,7 @@ if __name__ == '__main__':
 
     parser = create_parser()
     script_arguments = parser.parse_args()
-
-    Path(f'./{script_arguments.json_path}').mkdir(exist_ok=True)
-    json_filepath = os.path.join(script_arguments.json_path, 'books_data.json')
+    json_folder = script_arguments.json_path
 
     downloaded_books_data = []
 
@@ -120,7 +120,7 @@ if __name__ == '__main__':
             response.raise_for_status()
             check_for_redirect(response)
             book_info = parse_book_page(response)
-            
+
             payload = {'id': book_id}
             response = requests.get(
                 download_text_url, verify=False, params=payload)          
@@ -140,5 +140,4 @@ if __name__ == '__main__':
             print(f'Скачивается {book_info["title"]}')
             print(link, '\n')
 
-    with open(json_filepath, 'w', encoding='utf-8') as file:
-        json.dump(downloaded_books_data, file, indent=4, ensure_ascii=False)
+    download_json(json_folder, downloaded_books_data)
