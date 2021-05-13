@@ -15,7 +15,6 @@ from urllib.parse import urljoin, urlsplit, urlparse
 
 def get_bookpages_links(url):
     tululu_url = 'https://tululu.org/'
-    book_page_links = []
 
     for page_id in range(script_arguments.start_page,
             script_arguments.last_page + 1):
