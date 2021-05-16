@@ -130,9 +130,7 @@ if __name__ == '__main__':
                 download_text_url, verify=False, params=payload)          
             check_for_redirect(response)
         except HTTPError:
-            error_text = f'Book {book_id} is not found'
-            print(error_text, '\n')
-            logging.error(error_text)
+            logging.exception(f'Book {book_id} is not found\n')
         else:
             if script_arguments.skip_txt:
                 download_txt(download_text_url, book_info['title'], book_id,
@@ -141,7 +139,5 @@ if __name__ == '__main__':
                 download_image(book_info['image_url'], book_id,
                     folder=script_arguments.image_folder)
             downloaded_books_data.append(book_info)
-            print(f'Скачивается {book_info["title"]}')
-            print(link, '\n')
 
     download_json(json_folder, downloaded_books_data)

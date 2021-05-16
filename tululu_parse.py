@@ -30,6 +30,7 @@ def download_txt(url, filename, book_id, folder):
         file.write(response.text)
     return filepath
 
+
 def download_image(url, book_id, folder):
     Path(f'./{folder}').mkdir(exist_ok=True)
     filename = f'{book_id}{os.path.splitext(urlparse(url).path)[-1]}'
@@ -116,7 +117,3 @@ if __name__ == '__main__':
                 script_arguments.dest_folder[1])
             download_txt(download_text_url, book_info['title'], book_id,
                 script_arguments.dest_folder[0])
-
-            print('Автор:', book_info['author'])
-            print('Название:', book_info['title'])
-            print('Жанр(ы):', book_info['genres'], '\n')
