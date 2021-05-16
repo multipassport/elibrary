@@ -18,7 +18,7 @@ def get_bookpages_links(url):
 
     for page_id in range(script_arguments.start_page,
             script_arguments.last_page + 1):
-        page_url = urljoin(scifi_collection_url, str(page_id))
+        page_url = urljoin(url, str(page_id))
         response = requests.get(page_url, verify=False)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'lxml')
@@ -28,7 +28,7 @@ def get_bookpages_links(url):
             yield book_page_link
 
 
-def create_parser():
+def create_parser(last_page):
     parser = argparse.ArgumentParser(
         description='Скрипт, позволяющий скачивать книги жанра'
         ' Научная фантастика из библиотеки tululu.org',
@@ -48,7 +48,7 @@ def create_parser():
         help='Номер последней страницы из коллекции,'
         ' которую Вы собираетесь скачать',
         type=int,
-        default=LAST_PAGE,
+        default=last_page,
         metavar='ПОСЛЕДНЯЯ СТРАНИЦА',
         )
     parser.add_argument(
@@ -73,20 +73,20 @@ def create_parser():
     parser.add_argument(
         '--skip_imgs',
         help='Если указан, обложки не будут скачиваться',
-        default=True,
-        action='store_false',
+        default=False,
+        action='store_true',
         )
     parser.add_argument(
         '--skip_txt',
         help='Если указан, книги не будут скачиваться',
-        default=True,
-        action='store_false',
+        default=False,
+        action='store_true'
         )
     return parser
 
 
-def fetch_last_page_of_collection_number(url):
-    response = requests.get(scifi_collection_url, verify=False)
+def fetch_last_page_number(url):
+    response = requests.get(url, verify=False)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, 'lxml')
     return soup.select('.npage')[-1].text
@@ -98,7 +98,7 @@ def download_json(folder, data):
     json_filepath = os.path.join(folder, json_filename)
 
     with open(json_filepath, 'w', encoding='utf-8') as file:
-        json.dump(downloaded_books_data, file, indent=4, ensure_ascii=False)
+        json.dump(data, file, indent=4, ensure_ascii=False)
 
 
 if __name__ == '__main__':
@@ -107,9 +107,9 @@ if __name__ == '__main__':
 
     scifi_collection_url = 'https://tululu.org/l55/'
     download_text_url = 'https://tululu.org/txt.php'
-    LAST_PAGE = fetch_last_page_of_collection_number(scifi_collection_url)
+    last_page = fetch_last_page_number(scifi_collection_url)
 
-    parser = create_parser()
+    parser = create_parser(last_page)
     script_arguments = parser.parse_args()
     json_folder = script_arguments.json_path
 
@@ -124,7 +124,6 @@ if __name__ == '__main__':
             response.raise_for_status()
             check_for_redirect(response)
             book_info = parse_book_page(response)
-
             payload = {'id': book_id}
             response = requests.get(
                 download_text_url, verify=False, params=payload)          
@@ -132,10 +131,11 @@ if __name__ == '__main__':
         except HTTPError:
             logging.exception(f'Book {book_id} is not found\n')
         else:
-            if script_arguments.skip_txt:
+            if not script_arguments.skip_txt:
                 download_txt(download_text_url, book_info['title'], book_id,
                     folder=script_arguments.book_folder)
-            if script_arguments.skip_imgs:
+
+            if not script_arguments.skip_imgs:
                 download_image(book_info['image_url'], book_id,
                     folder=script_arguments.image_folder)
             downloaded_books_data.append(book_info)
