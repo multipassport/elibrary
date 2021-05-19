@@ -127,7 +127,6 @@ if __name__ == '__main__':
             response.raise_for_status()
             check_for_redirect(response)
             book_info = parse_book_page(response)
-            payload = {'id': book_id}
 
             if not script_arguments.skip_txt:
                 download_txt(download_text_url, book_info['title'], book_id,
@@ -136,7 +135,7 @@ if __name__ == '__main__':
             if not script_arguments.skip_imgs:
                 download_image(book_info['image_url'], book_id,
                     folder=script_arguments.image_folder)
-                
+
             downloaded_books_data.append(book_info)
         except HTTPError:
             logging.exception(f'Book {book_id} is not found\n')
