@@ -23,12 +23,14 @@ def download_txt(url, filename, book_id, folder):
 
     payload = {'id': book_id}
     response = requests.get(url, params=payload,
-        verify=False, allow_redirects=False)
+        verify=False)
     response.raise_for_status()
-
-    with open(filepath, 'w') as file:
-        file.write(response.text)
-    return filepath
+    if response.history:
+        raise HTTPError
+    else:
+        with open(filepath, 'w') as file:
+            file.write(response.text)
+        return filepath
 
 
 def download_image(url, book_id, folder):

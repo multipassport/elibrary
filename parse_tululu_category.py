@@ -13,11 +13,10 @@ from tululu_parse import (parse_book_page, download_image,
 from urllib.parse import urljoin, urlsplit, urlparse
 
 
-def get_bookpages_links(url):
+def get_bookpages_links(url, start_page, last_page):
     tululu_url = 'https://tululu.org/'
 
-    for page_id in range(script_arguments.start_page,
-            script_arguments.last_page + 1):
+    for page_id in range(start_page, last_page + 1):
         page_url = urljoin(url, str(page_id))
         response = requests.get(page_url, verify=False)
         response.raise_for_status()
@@ -115,7 +114,11 @@ if __name__ == '__main__':
 
     downloaded_books_data = []
 
-    book_page_links = get_bookpages_links(scifi_collection_url)
+    book_page_links = get_bookpages_links(
+        scifi_collection_url,
+        script_arguments.start_page,
+        script_arguments.last_page
+        )
 
     for link in book_page_links:
         book_id = urlsplit(link).path.strip('/b')
@@ -125,12 +128,7 @@ if __name__ == '__main__':
             check_for_redirect(response)
             book_info = parse_book_page(response)
             payload = {'id': book_id}
-            response = requests.get(
-                download_text_url, verify=False, params=payload)          
-            check_for_redirect(response)
-        except HTTPError:
-            logging.exception(f'Book {book_id} is not found\n')
-        else:
+
             if not script_arguments.skip_txt:
                 download_txt(download_text_url, book_info['title'], book_id,
                     folder=script_arguments.book_folder)
@@ -138,6 +136,9 @@ if __name__ == '__main__':
             if not script_arguments.skip_imgs:
                 download_image(book_info['image_url'], book_id,
                     folder=script_arguments.image_folder)
+                
             downloaded_books_data.append(book_info)
+        except HTTPError:
+            logging.exception(f'Book {book_id} is not found\n')
 
     download_json(json_folder, downloaded_books_data)
