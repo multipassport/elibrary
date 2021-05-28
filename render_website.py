@@ -3,7 +3,9 @@ import os
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from livereload import Server
+from math import ceil
 from more_itertools import chunked
+
 
 def get_template():
     env = Environment(
@@ -21,11 +23,14 @@ def render_pages():
     os.makedirs(folder, exist_ok=True)
     with open(json_file, 'r', encoding='utf-8') as file:
         books_details = json.load(file)
-    
+
     books_details_pages = list(chunked(books_details, book_chunk_size))
+    pages_count = len(books_details_pages)
     for page_number, page in enumerate(books_details_pages, 1):
         rendered_page = get_template().render(
             books=page,
+            pages_count=pages_count,
+            current_page=page_number,
         )
         page_path = os.path.join(folder, f'index{page_number}.html')
         with open(page_path, 'w', encoding='utf-8') as file:
@@ -37,5 +42,5 @@ if __name__ == '__main__':
 
     server=Server()
 
-    server.watch('template.html', render_page)
+    server.watch('template.html', render_pages)
     server.serve(root='.')
