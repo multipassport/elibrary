@@ -3,7 +3,6 @@ import os
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from livereload import Server
-from math import ceil
 from more_itertools import chunked
 
 
@@ -18,13 +17,14 @@ def get_template():
 
 def render_pages():
     json_file = 'books_data.json'
-    book_chunk_size = 8
+    books_chunk_size = 8
     folder = 'pages'
+
     os.makedirs(folder, exist_ok=True)
     with open(json_file, 'r', encoding='utf-8') as file:
         books_details = json.load(file)
 
-    books_details_pages = list(chunked(books_details, book_chunk_size))
+    books_details_pages = list(chunked(books_details, books_chunk_size))
     pages_count = len(books_details_pages)
     for page_number, page in enumerate(books_details_pages, 1):
         rendered_page = get_template().render(
@@ -40,7 +40,7 @@ def render_pages():
 if __name__ == '__main__':
     render_pages()
 
-    server=Server()
+    server = Server()
 
     server.watch('template.html', render_pages)
     server.serve(root='.')
