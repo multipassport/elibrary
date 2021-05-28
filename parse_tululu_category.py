@@ -111,6 +111,8 @@ if __name__ == '__main__':
     parser = create_parser(last_page)
     script_arguments = parser.parse_args()
     json_folder = script_arguments.json_path
+    books_folder = script_arguments.book_folder
+    images_folder = script_arguments.image_folder
 
     downloaded_books_data = []
 
@@ -129,12 +131,12 @@ if __name__ == '__main__':
             book_info = parse_book_page(response)
 
             if not script_arguments.skip_txt:
-                download_txt(download_text_url, book_info['title'], book_id,
-                    folder=script_arguments.book_folder)
-
+                book_info['book_path'] = download_txt(download_text_url,
+                    book_info['title'], book_id, folder=books_folder)
+                
             if not script_arguments.skip_imgs:
-                download_image(book_info['image_url'], book_id,
-                    folder=script_arguments.image_folder)
+                book_info['image_path'] = download_image(book_info['image_url'],
+                    book_id, folder=images_folder)
 
             downloaded_books_data.append(book_info)
         except HTTPError:
