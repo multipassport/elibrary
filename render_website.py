@@ -16,12 +16,12 @@ def get_template():
 
 
 def render_pages():
-    json_file = 'books_data.json'
+    json_filename = 'books_data.json'
     books_chunk_size = 8
     folder = 'pages'
 
     os.makedirs(folder, exist_ok=True)
-    with open(json_file, 'r', encoding='utf-8') as file:
+    with open(json_filename, 'r', encoding='utf-8') as file:
         books_details = json.load(file)
 
     books_details_pages = list(chunked(books_details, books_chunk_size))
