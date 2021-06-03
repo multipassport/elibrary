@@ -31,7 +31,7 @@ def create_parser(last_page):
     parser = argparse.ArgumentParser(
         description='Скрипт, позволяющий скачивать книги жанра'
         ' Научная фантастика из библиотеки tululu.org',
-        )
+    )
     parser.add_argument(
         '-s',
         '--start_page',
@@ -40,7 +40,7 @@ def create_parser(last_page):
         type=int,
         default=1,
         metavar='ПЕРВАЯ СТРАНИЦА',
-        )
+    )
     parser.add_argument(
         '-l',
         '--last_page',
@@ -49,38 +49,38 @@ def create_parser(last_page):
         type=int,
         default=last_page,
         metavar='ПОСЛЕДНЯЯ СТРАНИЦА',
-        )
+    )
     parser.add_argument(
         '--book_folder',
         help='Выбор папок для скачивания книг, обложек и json-файла',
         default='books',
         metavar='КНИГИ',
-        )
+    )
     parser.add_argument(
         '--image_folder',
         help='Выбор папок для скачивания книг, обложек и json-файла',
         default='images',
         metavar='КАРТИНКИ',
-        )
+    )
     parser.add_argument(
         '--json_path',
         help='Выбор папок для скачивания книг, обложек и json-файла',
         nargs='+',
         default='',
         metavar='ПУТЬ К ФАЙЛУ JSON',
-        )
+    )
     parser.add_argument(
         '--skip_imgs',
         help='Если указан, обложки не будут скачиваться',
         default=False,
         action='store_true',
-        )
+    )
     parser.add_argument(
         '--skip_txt',
         help='Если указан, книги не будут скачиваться',
         default=False,
         action='store_true'
-        )
+    )
     return parser
 
 
@@ -120,7 +120,7 @@ if __name__ == '__main__':
         scifi_collection_url,
         script_arguments.start_page,
         script_arguments.last_page
-        )
+    )
 
     for link in book_page_links:
         book_id = urlsplit(link).path.strip('/b')
@@ -131,12 +131,19 @@ if __name__ == '__main__':
             book_info = parse_book_page(response)
 
             if not script_arguments.skip_txt:
-                book_info['book_path'] = download_txt(download_text_url,
-                    book_info['title'], book_id, folder=books_folder)
-                
+                book_info['book_path'] = download_txt(
+                    download_text_url,
+                    book_info['title'],
+                    book_id,
+                    folder=books_folder
+                )
+
             if not script_arguments.skip_imgs:
-                book_info['image_path'] = download_image(book_info['image_url'],
-                    book_id, folder=images_folder)
+                book_info['image_path'] = download_image(
+                    book_info['image_url'],
+                    book_id,
+                    folder=images_folder
+                )
 
             downloaded_books_data.append(book_info)
         except HTTPError:

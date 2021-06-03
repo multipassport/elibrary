@@ -22,8 +22,7 @@ def download_txt(url, filename, book_id, folder):
     filepath = f'{os.path.join(folder, clear_filename)}.txt'
 
     payload = {'id': book_id}
-    response = requests.get(url, params=payload,
-        verify=False)
+    response = requests.get(url, params=payload, verify=False)
     response.raise_for_status()
     if response.history:
         raise HTTPError
@@ -49,8 +48,9 @@ def download_image(url, book_id, folder):
 def parse_book_page(response):
     soup = BeautifulSoup(response.text, 'lxml')
 
-    title, author = [element.strip()
-        for element in soup.select_one('h1').text.split('::')]
+    title, author = [
+        element.strip() for element in soup.select_one('h1').text.split('::')
+    ]
 
     genres = [genre.text for genre in soup.select('span.d_book a')]
 
@@ -65,31 +65,31 @@ def parse_book_page(response):
         'genres': genres,
         'comments': comments,
         'image_url': image_url,
-        }
+    }
     return book_info
 
 
 def create_parser():
     parser = argparse.ArgumentParser(
         description='Скрипт, позволяющий скачивать книги из библиотеки tululu.org',
-        )
+    )
     parser.add_argument(
         'start_id',
         help='Номер первой книги из списка для скачивания',
         type=int,
-        )
+    )
     parser.add_argument(
         'end_id',
         help='Номер последней книги в списке для скачивания',
         type=int,
-        )
+    )
     parser.add_argument(
         '--dest_folder',
         help='Выбор папок для скачивания книг, обложек и json-файла',
         nargs='+',
         default=['books', 'images'],
         metavar=('КНИГИ, КАРТИНКИ'),
-        )
+    )
     return parser
 
 
@@ -115,7 +115,14 @@ if __name__ == '__main__':
             logging.error(error_text)
         else:
             book_info = parse_book_page(response)
-            download_image(book_info['image_url'], book_id,
-                script_arguments.dest_folder[1])
-            download_txt(download_text_url, book_info['title'], book_id,
-                script_arguments.dest_folder[0])
+            download_image(
+                book_info['image_url'],
+                book_id,
+                script_arguments.dest_folder[1]
+            )
+            download_txt(
+                download_text_url,
+                book_info['title'],
+                book_id,
+                script_arguments.dest_folder[0]
+            )
